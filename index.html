@@ -115,6 +115,11 @@
   .internal .lab small{display:block;color:var(--muted);font-weight:500;letter-spacing:0;margin-top:2px}
   .internal .m{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;color:var(--ok);
     font-variant-numeric:tabular-nums}
+  .mrow{display:flex;gap:12px;flex-wrap:wrap}
+  .mcell{flex:1;min-width:150px;background:#fff;border:1px solid #EFD9E2;border-radius:11px;
+    padding:11px 14px;display:flex;flex-direction:column;gap:3px}
+  .mcell .mk{font-size:11.5px;color:var(--muted);font-weight:500}
+  .mcell .m{font-size:21px}
   .foot{margin-top:30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
   .fade{animation:fade .35s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -152,11 +157,20 @@
   <div class="offers" id="offers"></div>
 
   <!-- INTERNAL -->
-  <div class="internal">
-    <div class="lab">Pour toi — ne pas montrer au client
-      <small id="marginNote">Marge sur conversion + option (hors 500€ pub, quasi pure marge)</small>
+  <div class="internal" style="flex-direction:column;align-items:stretch;gap:0">
+    <div class="lab" style="margin-bottom:12px">Pour toi — ne pas montrer au client
+      <small>Marge mensuelle, hors 500€ de pub (quasi pure marge en plus)</small>
     </div>
-    <div class="m" id="marginOut">+0€/mois</div>
+    <div class="mrow">
+      <div class="mcell">
+        <span class="mk" id="mk1">Conversion seule</span>
+        <span class="m" id="marginConv">+0€</span>
+      </div>
+      <div class="mcell">
+        <span class="mk" id="mk2">Conversion + Présence garantie</span>
+        <span class="m" id="marginFull">+0€</span>
+      </div>
+    </div>
   </div>
 
   <p class="foot">Estimations indicatives basées sur ta grille. Le coût par lead réel fait varier le volume — ajuste-le selon la saison et la niche.</p>
@@ -263,7 +277,7 @@
     const extraPubLine = extraPub>0
       ? `<li class="muted"><span>+ pub des offres supplémentaires</span><span>+${eur(extraPub)}</span></li>` : '';
 
-    let marginVal=0, marginNote='';
+    let marginConvOnly=0, marginFullVal=0, noConv=false;
 
     if(hasConv){
       const core = adMgmt + convPrice;
@@ -296,8 +310,8 @@
           <div class="sep"></div>
           <div class="pitch">Pour <b>${eur(garPrice)}</b> de plus, on rappelle le jour J et on récupère les absents — l'agenda se remplit <i>vraiment</i>.</div>
         </div>`;
-      marginVal = (convPrice - SDRMAX[t]) + Math.round(garPrice/2);
-      marginNote = "Marge sur conversion + option (hors 500€ pub, quasi pure marge)";
+      marginConvOnly = convPrice - SDRMAX[t];
+      marginFullVal  = (convPrice - SDRMAX[t]) + Math.round(garPrice/2);
     } else {
       // aucune offre en conversion → pur ad management, et on propose d'activer la conversion
       const acquis = adMgmt; // toutes les offres en solo
@@ -332,12 +346,20 @@
           <div class="sep"></div>
           <div class="pitch">Pour <b>${eur(convAll-acquis)}</b> de plus, on cale ~${rdvL}–${rdvH} RDV/mois à sa place${extraPub>0?` — et ses offres supp. passent à 150€`:''}.</div>
         </div>`;
-      marginVal = 0;
-      marginNote = "Aucune offre en conversion → marge surtout sur la pub (500€), quasi pure marge.";
+      marginConvOnly = 0; marginFullVal = 0; noConv = true;
     }
 
-    $('marginOut').textContent = hasConv ? ("+"+eur(marginVal)+"/mois") : "pub ≈ pure marge";
-    $('marginNote').textContent = marginNote;
+    if(noConv){
+      $('marginConv').textContent = "pub ≈ pure marge";
+      $('marginFull').textContent = "—";
+      $('mk1').textContent = "Sans conversion";
+      $('mk2').textContent = "Si conversion activée";
+    } else {
+      $('mk1').textContent = "Conversion seule";
+      $('mk2').textContent = "Conversion + Présence garantie";
+      $('marginConv').textContent = "+"+eur(marginConvOnly)+"/mois";
+      $('marginFull').textContent = "+"+eur(marginFullVal)+"/mois";
+    }
   }
 
   renderOfferRows();
