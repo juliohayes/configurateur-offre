@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurateur d'offre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F4;
+    --surface:#FFFFFF;
+    --ink:#211B1F;
+    --muted:#8C8189;
+    --line:#ECE3E7;
+    --accent:#9C4368;
+    --accent-2:#BC6585;
+    --blush:#F7EBF0;
+    --ok:#3F7A5E;
+    --shadow:0 1px 2px rgba(33,27,31,.04),0 8px 24px rgba(33,27,31,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.5;
+    padding:24px 16px 64px;
+    font-feature-settings:"cv05","ss01";
+  }
+  .wrap{max-width:920px;margin:0 auto}
+  .eyebrow{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:600;margin-bottom:10px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-.02em;
+    line-height:1.05;margin-bottom:8px;
+  }
+  .sub{color:var(--muted);font-size:15px;max-width:48ch}
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    padding:22px;box-shadow:var(--shadow);margin-top:28px;
+  }
+  .panel-title{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;
+    letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;
+  }
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:13.5px;font-weight:500;margin-bottom:7px}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+  .input-money{position:relative;display:flex;align-items:center}
+  .input-money input{
+    width:100%;font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;
+    padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;
+    color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s;
+    font-variant-numeric:tabular-nums;
+  }
+  .input-money input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--blush)}
+  .input-money .unit{
+    position:absolute;right:14px;color:var(--muted);font-size:13px;font-weight:500;
+    pointer-events:none;font-family:'Inter',sans-serif;
+  }
+  .stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;width:fit-content}
+  .stepper button{
+    width:46px;height:48px;border:none;background:#fff;font-size:22px;color:var(--accent);
+    cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:background .12s;
+  }
+  .stepper button:hover{background:var(--blush)}
+  .stepper .val{
+    min-width:54px;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:20px;
+    font-weight:600;font-variant-numeric:tabular-nums;
+  }
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:14px 0;border-top:1px solid var(--line);margin-top:4px}
+  .toggle-row:first-of-type{border-top:none}
+  .toggle-label{font-size:14.5px;font-weight:500}
+  .toggle-desc{font-size:12px;color:var(--muted);margin-top:2px}
+  .switch{position:relative;width:50px;height:29px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:#E3D8DD;border-radius:30px;cursor:pointer;transition:.2s}
+  .slider:before{content:"";position:absolute;height:23px;width:23px;left:3px;top:3px;
+    background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked + .slider{background:var(--accent)}
+  .switch input:checked + .slider:before{transform:translateX(21px)}
+
+  /* estimate readout */
+  .estimate{
+    margin-top:28px;display:flex;flex-wrap:wrap;gap:14px;
+  }
+  .stat{
+    flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);
+    border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);
+  }
+  .stat .k{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;font-family:'Space Grotesk',sans-serif}
+  .stat .v{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .stat .v small{font-size:15px;font-weight:500;color:var(--muted)}
+  .tierpill{display:inline-block;margin-top:4px;font-size:12.5px;color:var(--accent);font-weight:600}
+
+  /* offer cards */
+  .offers{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  @media(max-width:640px){.offers{grid-template-columns:1fr}}
+  .offer{
+    background:var(--surface);border:1px solid var(--line);border-radius:20px;
+    padding:24px;box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;
+  }
+  .offer.premium{border:1.5px solid var(--accent);background:linear-gradient(180deg,#fff, #FFFBFC)}
+  .badge{
+    position:absolute;top:-11px;left:24px;background:var(--accent);color:#fff;
+    font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    padding:5px 11px;border-radius:20px;font-family:'Space Grotesk',sans-serif;
+  }
+  .badge.soft{background:var(--ink)}
+  .offer .name{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:600;margin-bottom:3px}
+  .offer .tag{font-size:12.5px;color:var(--muted);margin-bottom:18px}
+  .price{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:38px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+  .price small{font-size:15px;color:var(--muted);font-weight:500}
+  .lines{list-style:none;margin:18px 0 0;display:flex;flex-direction:column;gap:9px}
+  .lines li{display:flex;justify-content:space-between;font-size:13.5px;gap:12px;align-items:baseline}
+  .lines li span:first-child{color:#3f3a3d}
+  .lines li span:last-child{font-family:'Space Grotesk',sans-serif;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .lines li.muted span{color:var(--muted);font-weight:500}
+  .sep{height:1px;background:var(--line);margin:16px 0 0}
+  .pitch{margin-top:16px;font-size:13px;color:#4a4145;background:var(--blush);
+    border-radius:12px;padding:12px 14px;line-height:1.45}
+  .offer.plain .pitch{background:#F4F1F2}
+
+  /* internal margin */
+  .internal{
+    margin-top:22px;border:1px dashed #D8B9C6;border-radius:14px;padding:14px 18px;
+    background:#FCF7F9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+  .internal .lab{font-size:12.5px;color:var(--accent);font-weight:600;letter-spacing:.02em}
+  .internal .lab small{display:block;color:var(--muted);font-weight:500;letter-spacing:0;margin-top:2px}
+  .internal .m{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;color:var(--ok);font-variant-numeric:tabular-nums}
+  .foot{margin-top:30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+  .fade{animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Outil interne · préparation d'appel</div>
+  <h1>Configurateur d'offre</h1>
+  <p class="sub">Rentre quelques infos pendant l'appel. L'outil estime le volume de leads et te propose deux offres à présenter — une cœur, une premium. Tu ne montres jamais la grille, tu fais choisir entre <em>bien</em> et <em>mieux</em>.</p>
+
+  <!-- INPUTS -->
+  <div class="panel">
+    <div class="panel-title">Les infos du client</div>
+    <div class="grid">
+      <div class="field">
+        <label for="budget">Budget publicitaire / jour</label>
+        <div class="input-money">
+          <input id="budget" type="number" min="0" step="5" value="40" inputmode="decimal">
+          <span class="unit">€ / jour</span>
+        </div>
+        <div class="hint">Ce qu'il met en pub chaque jour sur Meta.</div>
+      </div>
+      <div class="field">
+        <label for="cpl">Coût par lead estimé</label>
+        <div class="input-money">
+          <input id="cpl" type="number" min="0.5" step="0.5" value="6" inputmode="decimal">
+          <span class="unit">€ / lead</span>
+        </div>
+        <div class="hint">Varie selon la saison, la niche et la région. Mets ce que tu observes en ce moment sur ce type de prestation.</div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:18px">
+      <div class="field">
+        <label>Nombre d'offres découvertes</label>
+        <div class="stepper">
+          <button type="button" onclick="step(-1)" aria-label="moins">–</button>
+          <span class="val" id="offresVal">1</span>
+          <button type="button" onclick="step(1)" aria-label="plus">+</button>
+        </div>
+        <div class="hint">Minceur, épilation, massage… On conseille d'en lancer une seule au début.</div>
+      </div>
+      <div class="field">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">On gère les appels (conversion)</div>
+            <div class="toggle-desc">Notre SDR contacte ses prospects et cale les RDV.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="wantConv" checked><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTIMATE -->
+  <div class="estimate">
+    <div class="stat">
+      <div class="k">Leads estimés / mois</div>
+      <div class="v" id="leadsOut">200</div>
+      <div class="tierpill" id="tierOut">Palier 150–225</div>
+    </div>
+    <div class="stat">
+      <div class="k">RDV potentiels / mois</div>
+      <div class="v" id="rdvOut">60 <small>à 30–40%</small></div>
+      <div class="tierpill" id="rdvNote" style="color:var(--muted)">selon le taux du SDR</div>
+    </div>
+  </div>
+
+  <!-- OFFERS -->
+  <div class="offers" id="offers"></div>
+
+  <!-- INTERNAL -->
+  <div class="internal">
+    <div class="lab">Pour toi — ne pas montrer au client
+      <small id="marginNote">Marge sur conversion + option (hors 500€ pub, quasi pure marge)</small>
+    </div>
+    <div class="m" id="marginOut">+0€/mois</div>
+  </div>
+
+  <p class="foot">Estimations indicatives basées sur ta grille. Le coût par lead réel fait varier le volume — ajuste l'input si la saison change.</p>
+</div>
+
+<script>
+  // ---- Grille (selon paliers définis) ----
+  // Paliers de leads : <70 | 70-150 | 150-225 | 225-300 | 300+
+  const TIERS = [
+    {label:"moins de 70",  max:70},
+    {label:"70 – 150",     max:150},
+    {label:"150 – 225",    max:225},
+    {label:"225 – 300",    max:300},
+    {label:"300+",         max:Infinity},
+  ];
+  const CONV   = [200,300,400,500,600];   // prix conversion client
+  const GAR    = [60,120,180,230,270];    // prix présence garantie client
+  const SDRMAX = [120,180,230,280,330];   // coût SDR max (bonus inclus) pour la marge
+  const BASE   = 500;                      // Offre 1 (pub + CRM), 1 prestation
+  const EXTRA_CONV = 150;                  // offre supp. si conversion
+  const EXTRA_SOLO = 300;                  // offre supp. sans conversion
+
+  let offres = 1;
+  const $ = id => document.getElementById(id);
+  const eur = n => n.toLocaleString('fr-FR') + "€";
+
+  function tierIndex(leads){
+    for(let i=0;i<TIERS.length;i++){ if(leads < TIERS[i].max) return i; }
+    return TIERS.length-1;
+  }
+  function step(d){ offres = Math.max(1, Math.min(6, offres + d)); $('offresVal').textContent = offres; render(); }
+
+  function render(){
+    const budget = parseFloat($('budget').value)||0;
+    const cpl = parseFloat($('cpl').value)||0;
+    const wantConv = $('wantConv').checked;
+
+    const leads = cpl>0 ? Math.round(budget/cpl*30) : 0;
+    const t = tierIndex(leads);
+
+    // estimate readout
+    $('leadsOut').textContent = leads ? leads.toLocaleString('fr-FR') : "—";
+    $('tierOut').textContent = "Palier " + TIERS[t].label;
+    const rdvLow = Math.round(leads*0.30), rdvHigh = Math.round(leads*0.40);
+    $('rdvOut').innerHTML = leads ? (rdvLow+"–"+rdvHigh) : "—";
+
+    const extra = offres-1;
+    const extraConvTotal = extra*EXTRA_CONV;
+    const extraSoloTotal = extra*EXTRA_SOLO;
+
+    // package totals
+    const acquisOnly = BASE + extraSoloTotal;
+    const convTotal  = BASE + CONV[t] + extraConvTotal;
+    const fullTotal  = BASE + CONV[t] + GAR[t] + extraConvTotal;
+
+    const offersEl = $('offers');
+    offersEl.classList.remove('fade'); void offersEl.offsetWidth; offersEl.classList.add('fade');
+
+    const extraLine = (n,price) => n>0
+      ? `<li class="muted"><span>+ ${n} offre${n>1?'s':''} découverte${n>1?'s':''}</span><span>+${eur(price)}</span></li>` : '';
+
+    let marginVal = 0, marginNote = '';
+
+    if(wantConv){
+      // Card A = cœur (Acquisition + Conversion) ; Card B = premium (+ Présence garantie)
+      offersEl.innerHTML = `
+        <div class="offer plain">
+          <span class="badge soft">Offre cœur</span>
+          <div class="name">Acquisition + Conversion</div>
+          <div class="tag">On amène les leads ET on cale les RDV.</div>
+          <div class="price">${eur(convTotal)}<small>/mois</small></div>
+          <ul class="lines">
+            <li><span>Pubs + CRM + automatisations</span><span>${eur(BASE)}</span></li>
+            <li><span>Appels + messages + prise de RDV</span><span>${eur(CONV[t])}</span></li>
+            ${extraLine(extra, extraConvTotal)}
+          </ul>
+          <div class="sep"></div>
+          <div class="pitch">Il ne lève pas le petit doigt : les RDV tombent directement dans son agenda.</div>
+        </div>
+        <div class="offer premium">
+          <span class="badge">Recommandée</span>
+          <div class="name">Acquisition + Conversion + Présence garantie</div>
+          <div class="tag">Tout le reste + on sécurise la présence.</div>
+          <div class="price">${eur(fullTotal)}<small>/mois</small></div>
+          <ul class="lines">
+            <li><span>Pubs + CRM + automatisations</span><span>${eur(BASE)}</span></li>
+            <li><span>Appels + messages + prise de RDV</span><span>${eur(CONV[t])}</span></li>
+            <li><span>Confirmation J + relance no-shows</span><span>${eur(GAR[t])}</span></li>
+            ${extraLine(extra, extraConvTotal)}
+          </ul>
+          <div class="sep"></div>
+          <div class="pitch">Pour seulement <b>${eur(GAR[t])}</b> de plus, on rappelle le jour J et on récupère les absents — l'agenda se remplit <i>vraiment</i>.</div>
+        </div>`;
+      marginVal = (CONV[t]-SDRMAX[t]) + Math.round(GAR[t]/2);
+      marginNote = "Marge sur conversion + option (hors 500€ pub, quasi pure marge)";
+    } else {
+      // Card A = Acquisition seule ; Card B = upsell vers conversion
+      const upliftCost = convTotal - acquisOnly;
+      offersEl.innerHTML = `
+        <div class="offer plain">
+          <span class="badge soft">Ce qu'il demande</span>
+          <div class="name">Acquisition seule</div>
+          <div class="tag">On amène les leads, il gère ses appels lui-même.</div>
+          <div class="price">${eur(acquisOnly)}<small>/mois</small></div>
+          <ul class="lines">
+            <li><span>Pubs + CRM + automatisations</span><span>${eur(BASE)}</span></li>
+            ${extra>0?`<li class="muted"><span>+ ${extra} offre${extra>1?'s':''} (tarif solo)</span><span>+${eur(extraSoloTotal)}</span></li>`:''}
+          </ul>
+          <div class="sep"></div>
+          <div class="pitch">Attention : c'est lui qui doit appeler vite. S'il traîne, les leads refroidissent.</div>
+        </div>
+        <div class="offer premium">
+          <span class="badge">À lui proposer</span>
+          <div class="name">Acquisition + Conversion</div>
+          <div class="tag">On gère les appels à sa place.</div>
+          <div class="price">${eur(convTotal)}<small>/mois</small></div>
+          <ul class="lines">
+            <li><span>Pubs + CRM + automatisations</span><span>${eur(BASE)}</span></li>
+            <li><span>Appels + messages + prise de RDV</span><span>${eur(CONV[t])}</span></li>
+            ${extra>0?`<li class="muted"><span>+ ${extra} offre${extra>1?'s':''} (tarif réduit 150€)</span><span>+${eur(extraConvTotal)}</span></li>`:''}
+          </ul>
+          <div class="sep"></div>
+          <div class="pitch">Pour <b>${eur(upliftCost)}</b> de plus, on cale ~${rdvLow}–${rdvHigh} RDV/mois à sa place${extra>0?` — et ses offres supp. passent à 150€ au lieu de 300€`:''}.</div>
+        </div>`;
+      marginVal = (CONV[t]-SDRMAX[t]);
+      marginNote = "Marge sur la conversion s'il la prend (hors 500€ pub)";
+    }
+
+    $('marginOut').textContent = "+" + eur(marginVal) + "/mois";
+    $('marginNote').textContent = marginNote;
+  }
+
+  ['budget','cpl','wantConv'].forEach(id=>{
+    $(id).addEventListener('input', render);
+    $(id).addEventListener('change', render);
+  });
+  render();
+</script>
+</body>
+</html>
