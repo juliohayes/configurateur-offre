@@ -148,8 +148,8 @@
     </div>
     <div class="stat">
       <div class="k">RDV potentiels / mois</div>
-      <div class="v" id="rdvOut">—</div>
-      <div class="tierpill" id="rdvNote" style="color:var(--muted)">à 30–40% sur les leads en conversion</div>
+      <div class="v" id="rdvOut" style="font-size:25px">—</div>
+      <div class="tierpill" id="rdvNote" style="color:var(--muted)">à 20% / 30% / 40% de prise de RDV</div>
     </div>
   </div>
 
@@ -245,23 +245,32 @@
   }
   function addOffer(){ offers.push({name:"",budget:40,cpl:6,conv:true}); renderOfferRows(); render(); }
   function removeOffer(i){ if(offers.length>1){ offers.splice(i,1); renderOfferRows(); render(); } }
-  function leadsOf(o){ return o.cpl>0 ? Math.round(o.budget/o.cpl*30) : 0; }
+  const CPL_BAND = 0.15; // le coût par lead oscille ~±15% dans le mois
+  function leadsMid(o){ return o.cpl>0 ? Math.round(o.budget/o.cpl*30) : 0; }
+  function leadsLow(o){ return o.cpl>0 ? Math.round(o.budget/(o.cpl*(1+CPL_BAND))*30) : 0; }
+  function leadsHigh(o){ return o.cpl>0 ? Math.round(o.budget/(o.cpl*(1-CPL_BAND))*30) : 0; }
+  const rangeTxt = (lo,hi) => lo===hi ? lo.toLocaleString('fr-FR') : (lo.toLocaleString('fr-FR')+"–"+hi.toLocaleString('fr-FR'));
 
   function render(){
-    let total=0, convLeads=0;
+    let totalMid=0, totalLo=0, totalHi=0, convMid=0, convLo=0, convHi=0;
     offers.forEach((o,i)=>{
-      const L=leadsOf(o); total+=L; if(o.conv) convLeads+=L;
-      const el=$('rowLeads'+i); if(el) el.textContent=L.toLocaleString('fr-FR');
+      const m=leadsMid(o), lo=leadsLow(o), hi=leadsHigh(o);
+      totalMid+=m; totalLo+=lo; totalHi+=hi;
+      if(o.conv){ convMid+=m; convLo+=lo; convHi+=hi; }
+      const el=$('rowLeads'+i); if(el) el.textContent=rangeTxt(lo,hi);
     });
 
+    const convLeads = convMid;                // valeur centrale → palier & prix
+    const total = totalMid;
     const t = tierIndex(convLeads);           // palier basé sur les leads EN CONVERSION
     const hasConv = convLeads>0;
 
-    $('leadsOut').textContent = total ? total.toLocaleString('fr-FR') : "—";
+    $('leadsOut').textContent = total ? rangeTxt(totalLo,totalHi) : "—";
     $('tierOut').textContent = !total ? "—"
-      : (hasConv ? `${convLeads.toLocaleString('fr-FR')} en conversion · palier ${TIERS[t].label}` : "aucune offre en conversion");
-    const rdvLow=Math.round(convLeads*0.30), rdvHigh=Math.round(convLeads*0.40);
-    $('rdvOut').innerHTML = hasConv ? (rdvLow+"–"+rdvHigh) : "—";
+      : (hasConv ? `≈ ${convMid.toLocaleString('fr-FR')} en conversion · palier ${TIERS[t].label}` : "aucune offre en conversion");
+    const rdv20=Math.round(convMid*0.20), rdv30=Math.round(convMid*0.30), rdv40=Math.round(convMid*0.40);
+    $('rdvOut').innerHTML = hasConv ? `${rdv20} / ${rdv30} / ${rdv40}` : "—";
+    $('rdvNote').textContent = hasConv ? "à 20% / 30% / 40% de prise de RDV" : "à 20 / 30 / 40% sur les leads en conversion";
 
     // gestion pub : 500 base (1ère offre) + offres suppl. (150 si conv, 300 sinon)
     let extraPub=0;
